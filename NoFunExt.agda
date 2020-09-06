@@ -9,7 +9,7 @@ open import Identity
 FunExtTy : ∀ {i j k} → Set _
 FunExtTy {i}{j}{k} =
          ∀ {Γ A B}(f g : Tm Γ (Π {i}{j}{k} A B))
-         → Tm (Γ ▶ A) (Id (app {i}{j}{k}{Γ}{A}{B} f) (app g))
+         → Tm (Γ ▶ A) (Id (app f) (app g))
          → Tm Γ (Id f g)
 
 A : Ty ∙ lzero

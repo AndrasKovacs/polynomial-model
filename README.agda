@@ -1,6 +1,5 @@
 
 {-
-
 A polynomial model of a Martin-Löf type theory. Based on:
 
 - https://www.repository.cam.ac.uk/handle/1810/254394
@@ -13,9 +12,11 @@ feature-rich type theory.
 
 This project was checked with Agda 2.6.1 with standard library 1.3.
 
-We use funext and UIP in the metatheory. I intend to get rid of --type-in-type
-shortly and enable --safe.
-
+Metatheory:
+- We use funext and UIP.
+- We use Agda's native Level to model universe levels. This is convenient because we get
+  the built-in level solving for free. We could also use a deeper inductive-recursive embedding,
+  but I don't think there's much benefit to that here.
 -}
 
 module README where
@@ -24,10 +25,10 @@ module README where
 -- and properties of the binary sum type, which is prominently used in the model.
 open import Lib
 
-open import CwF -- category-with-families
+open import CwF      -- category-with-families
 open import Pi
 open import Sigma
-open import Univ
+open import Univ     -- countable hierarchy of Coquand-style universes
 open import Nat
 open import Identity
 open import Unit
