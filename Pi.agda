@@ -1,29 +1,29 @@
-{-# OPTIONS --type-in-type #-}
 
 module Pi where
 
 open import Lib
 open import CwF
 
-Π : ∀ {Γ}(A : Ty Γ) → Ty (Γ ▶ A) → Ty Γ
-P (Π {Γ} A B) γ     = (α : P A γ) → ∃ λ (fα : P B (γ , α)) → R B fα → ⊤ ⊎ R A α
-R (Π {Γ} A B) {γ} f = ∃₂ λ (α : P A γ)(fα* : R B (₁ (f α))) → isLeft (₂ (f α) fα*)
+Π : ∀ {i j k Γ}(A : Ty {i} Γ j) → Ty (Γ ▶ A) k → Ty Γ (j ⊔ k)
+P (Π {i}{j} A B) γ     = (α : P A γ) → ∃ λ (fα : P B (γ , α)) → R B fα → ⊤ {j} ⊎ R A α
+R (Π {i}{j} A B) {γ} f = ∃₂ λ (α : P A γ)(fα* : R B (₁ (f α))) → isLeft (₂ (f α) fα*)
 
-Π[] : ∀ {Γ Δ}{σ : Sub Γ Δ}{A B} → Π {Δ} A B [ σ ]T ≡ Π (A [ σ ]T) (B [ σ ^ A ]T)
+Π[] : ∀ {i j k l Γ Δ}{σ : Sub {i} Γ {j} Δ}{A B}
+      → Π {j}{k}{l}{Δ} A B [ σ ]T ≡ Π (A [ σ ]T) (B [ σ ^ A ]T)
 Π[] = refl
 
-app : ∀ {Γ A B} → Tm Γ (Π A B) → Tm (Γ ▶ A) B
-P (app {Γ} {A} {B} t) (γ , α)    = ₁ (P t γ α)
-R (app {Γ} {A} {B} t) {γ , α} β* = lmap (₂ (P t γ α) β*) (λ p _ → R t (α , β* , p))
+app : ∀ {i j k Γ A B} → Tm Γ (Π {i}{j}{k} A B) → Tm (Γ ▶ A) B
+P (app t) (γ , α)    = ₁ (P t γ α)
+R (app t) {γ , α} β* = lmap (₂ (P t γ α) β*) (λ p _ → R t (α , β* , p))
 
-lam : ∀ {Γ A B} → Tm (Γ ▶ A) B → Tm Γ (Π A B)
-P (lam {Γ} {A} {B} t) γ α          = (P t (γ , α)) , (λ β* → lmap (R t β*) _)
-R (lam {Γ} {A} {B} t) (α , β* , p) = getLeft (R t β*) (lmap-isLeft← p)
+lam : ∀ {i j k Γ A B} → Tm (Γ ▶ A) B → Tm Γ (Π {i}{j}{k}A B)
+P (lam t) γ α          = (P t (γ , α)) , (λ β* → lmap (R t β*) _)
+R (lam t) (α , β* , p) = getLeft (R t β*) (lmap-isLeft← p)
 
 app[] :
-  ∀ {Γ Δ A B}{t : Tm Δ (Π A B)}{σ : Sub Γ Δ}
+  ∀ {i j k l Γ Δ A B}{t : Tm Δ (Π {j}{k}{l} A B)}{σ : Sub {i} Γ Δ}
   → app (t [ σ ]t) ≡ app t [ σ ∘ π₁ id ,ₛ π₂ id ]t
-app[] {Γ} {Δ} {A} {B} {t} {σ} =
+app[] {i}{j}{k}{l} {Γ} {Δ} {A} {B} {t} {σ} =
   Tm≡ (λ {(γ , α) → refl})
       (λ {(γ , α) tα* →
          lmap-lmap (₂ (P t (P σ γ) α) tα*)
@@ -36,8 +36,8 @@ app[] {Γ} {Δ} {A} {B} {t} {σ} =
 
 -- lam[] is derivable in any model
 
-Πβ : ∀ {Γ A B t} → app (lam {Γ}{A}{B} t) ≡ t
-Πβ {Γ} {A} {B} {t} =
+Πβ : ∀ {i j k Γ A B t} → app (lam {i}{j}{k}{Γ}{A}{B} t) ≡ t
+Πβ {i}{j}{k}{Γ} {A} {B} {t} =
   Tm≡ (λ _ → refl)
       (λ {(γ , α) β* →
          ⊎-elim (λ ab → lmap (lmap ab (λ _ _ → tt))
@@ -46,8 +46,8 @@ app[] {Γ} {Δ} {A} {B} {t} {σ} =
                 (λ _ → refl) (λ _ → refl) (R t β*)
       })
 
-Πη : ∀ {Γ A B t} → lam {Γ}{A}{B} (app t) ≡ t
-Πη {Γ} {A} {B} {t} = Tm≡ P≡ R≡ where
+Πη : ∀ {i j k Γ A B t} → lam {i}{j}{k}{Γ}{A}{B} (app t) ≡ t
+Πη {i}{j}{k}{Γ} {A} {B} {t} = Tm≡ P≡ R≡ where
   P≡ : (γ : P Γ) → P (lam (app t)) γ ≡ P t γ
   P≡ γ = ext λ α → ,≡ refl (ext λ β* → lmap-lmap (₂ (P t γ α) β*) _ _ ◾ lmap-⊤ _)
 

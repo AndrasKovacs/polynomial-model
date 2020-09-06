@@ -1,6 +1,4 @@
 
-{-# OPTIONS --type-in-type #-}
-
 {-
 
 A polynomial model of a Martin-Löf type theory. Based on:

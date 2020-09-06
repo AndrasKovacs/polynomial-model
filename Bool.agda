@@ -1,4 +1,3 @@
-{-# OPTIONS --type-in-type #-}
 
 module Bool where
 
@@ -7,48 +6,50 @@ import Lib as L
 
 open import CwF
 
-Bool : ∀ {Γ} → Ty Γ
+Bool : ∀ {i Γ} → Ty {i} Γ lzero
 Bool = ty (λ _ → L.Bool) λ _ → ⊥
 
-Bool[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → Bool [ σ ]T ≡ Bool
+Bool[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → Bool [ σ ]T ≡ Bool
 Bool[] = refl
 
-True : ∀ {Γ} → Tm Γ Bool
+True : ∀ {i Γ} → Tm {i} Γ Bool
 True = tm (λ _ → true) λ ()
 
-True[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → True [ σ ]t ≡ True
+True[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → True [ σ ]t ≡ True
 True[] = Tm≡ (λ _ → refl) (λ _ ())
 
-False : ∀ {Γ} → Tm Γ Bool
+False : ∀ {i Γ} → Tm {i} Γ Bool
 False = tm (λ _ → false) λ ()
 
-False[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → False [ σ ]t ≡ False
+False[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → False [ σ ]t ≡ False
 False[] = Tm≡ (λ _ → refl) (λ _ ())
 
 BoolElim :
-  ∀ {Γ}(Pr : Ty (Γ ▶ Bool))
-       (PT : Tm Γ (Pr [ < True > ]T))
-       (PF : Tm Γ (Pr [ < False > ]T))
-       (b  : Tm Γ Bool)
-  →    Tm Γ (Pr [ < b > ]T)
-P (BoolElim {Γ} Pr PT PF b) γ =
+  ∀ {i j}
+    {Γ : Con i}
+    (Pr : Ty (Γ ▶ Bool) j)
+    (PT : Tm Γ (Pr [ < True > ]T))
+    (PF : Tm Γ (Pr [ < False > ]T))
+    (b  : Tm Γ Bool)
+  →  Tm Γ (Pr [ < b > ]T)
+P (BoolElim {i}{j}{Γ} Pr PT PF b) γ =
   boolElim (λ b → P Pr (γ , b)) (P PT γ) (P PF γ) (P b γ)
-R (BoolElim {Γ} Pr PT PF b) {γ} =
+R (BoolElim {i}{j}{Γ} Pr PT PF b) {γ} =
   boolElim (λ b → R Pr (boolElim (λ b → P Pr (γ , b)) (P PT γ) (P PF γ) b)
                 → R Γ γ)
            (R PT) (R PF) (P b γ)
 
-Trueβ : ∀ {Γ Pr PT PF} → BoolElim {Γ} Pr PT PF True ≡ PT
+Trueβ : ∀ {i j Γ Pr PT PF} → BoolElim {i}{j}{Γ} Pr PT PF True ≡ PT
 Trueβ = refl
 
-Falseβ : ∀ {Γ Pr PT PF} → BoolElim {Γ} Pr PT PF False ≡ PF
+Falseβ : ∀ {i j Γ Pr PT PF} → BoolElim {i}{j}{Γ} Pr PT PF False ≡ PF
 Falseβ = refl
 
 BoolElim[] :
-  ∀ {Γ Δ Pr PT PF b}{σ : Sub Γ Δ}
-  → BoolElim {Δ} Pr PT PF b [ σ ]t
+  ∀ {i j k Γ Δ Pr PT PF b}{σ : Sub {i} Γ {k} Δ}
+  → BoolElim {k}{j}{Δ} Pr PT PF b [ σ ]t
   ≡ BoolElim (Pr [ σ ^ Bool ]T) (PT [ σ ]t) (PF [ σ ]t) (b [ σ ]t)
-BoolElim[] {Γ} {Δ} {Pr} {PT} {PF} {b} {σ} = Tm≡ (λ _ → refl) R≡ where
+BoolElim[] {i}{j}{k}{Γ} {Δ} {Pr} {PT} {PF} {b} {σ} = Tm≡ (λ _ → refl) R≡ where
   R≡ : _
   R≡ γ α with P b (P σ γ)
   ... | false = refl

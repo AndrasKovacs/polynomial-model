@@ -1,12 +1,10 @@
-{-# OPTIONS --type-in-type #-}
 
 module Lib where
 
 open import Relation.Binary.PropositionalEquality
   renaming (trans to infixr 4 _◾_; subst to tr; cong to ap; sym to infix 6 _⁻¹)
   public
-open import Data.Unit using (⊤; tt) public
-open import Data.Empty public
+
 open import Data.Product renaming (proj₁ to ₁; proj₂ to ₂) public
 open import Function using (_∋_; case_of_) public
 open import Level renaming (zero to lzero; suc to lsuc) public
@@ -16,11 +14,20 @@ import Axiom.Extensionality.Propositional as Axiom
 open import Data.Bool using (true; false; Bool) public
 open import Data.Nat using (zero; suc; ℕ) public
 
-boolElim : ∀ (P : Bool → Set) → P true → P false → ∀ b → P b
+record ⊤ {i} : Set i where
+  constructor tt
+open ⊤ public
+
+data ⊥ {i} : Set i where
+
+⊥-elim : ∀ {i j}{A : Set i} → ⊥ {j} → A
+⊥-elim ()
+
+boolElim : ∀ {i}(P : Bool → Set i) → P true → P false → ∀ b → P b
 boolElim P pt pf false = pf
 boolElim P pt pf true = pt
 
-natElim : ∀ (P : ℕ → Set) → P zero → (∀ n → P n → P (suc n)) → ∀ n → P n
+natElim : ∀ {i} (P : ℕ → Set i) → P zero → (∀ n → P n → P (suc n)) → ∀ n → P n
 natElim P pz ps zero = pz
 natElim P pz ps (suc n) = ps n (natElim P pz ps n)
 
@@ -36,27 +43,28 @@ J⁻¹ P refl p = p
      (p : a ≡ a') → tr B p b ≡ b' → (Σ A B ∋ (a , b)) ≡ (a' , b')
 ,≡ refl refl = refl
 
-tr-Σ : ∀ {I : Set}(A : I → Set)(B : ∃ A → Set)
+tr-Σ : ∀ {i j k}
+         {I : Set i}(A : I → Set j)(B : ∃ A → Set k)
          {i₀ i₁ : I}(i₀₁ : i₀ ≡ i₁)
          (ab : Σ (A i₀) (λ a → B (i₀ , a)))
        → tr (λ i → Σ (A i) λ a → B (i , a)) i₀₁ ab
          ≡ (tr A i₀₁ (₁ ab) , tr B (,≡ i₀₁ refl) (₂ ab))
 tr-Σ A B refl ab = refl
 
-tr-const : ∀ {A B}{a₀ a₁ : A}(a₀₁ : a₀ ≡ a₁)(b : B) → tr (λ _ → B) a₀₁ b ≡ b
+tr-const : ∀ {i j}{A : Set i}{B : Set j}{a₀ a₁ : A}(a₀₁ : a₀ ≡ a₁)(b : B) → tr (λ _ → B) a₀₁ b ≡ b
 tr-const refl b = refl
 
 tr-swap :
-  ∀ {A : Set}(B : A → Set)
+  ∀ {i j}{A : Set i}(B : A → Set j)
     {a₀ a₁}(p : a₀ ≡ a₁) a b
   → a ≡ tr B (p ⁻¹) b → tr B p a ≡ b
 tr-swap B refl a b q = q
 
-tr-coe : ∀ {A : Set}(B : A → Set){a₀ a₁ : A}(p : a₀ ≡ a₁) b
+tr-coe : ∀ {i j}{A : Set i}(B : A → Set j){a₀ a₁ : A}(p : a₀ ≡ a₁) b
          → tr B p b ≡ coe (ap B p) b
 tr-coe B refl b = refl
 
-coe-∘ : ∀ {A B C : Set}(p : A ≡ B)(q : B ≡ C) a → coe q (coe p a) ≡ coe (p ◾ q) a
+coe-∘ : ∀ {i}{A B C : Set i}(p : A ≡ B)(q : B ≡ C) a → coe q (coe p a) ≡ coe (p ◾ q) a
 coe-∘ refl refl a = refl
 
 postulate
@@ -69,7 +77,7 @@ UIP refl refl = refl
 UIP-refl : ∀ {i}{A : Set i}{x : A}(p : x ≡ x) → p ≡ refl
 UIP-refl refl = refl
 
-coe-UIP : ∀ {A : Set}(p : A ≡ A)(a : A) → coe p a ≡ a
+coe-UIP : ∀ {i}{A : Set i}(p : A ≡ A)(a : A) → coe p a ≡ a
 coe-UIP refl a = refl
 
 isLeft : ∀ {i j}{A : Set i}{B : Set j} → A ⊎ B → Set
@@ -92,25 +100,28 @@ lmap : ∀ {i j k}{A : Set i}{A' : Set j}{B : Set k}
 lmap (inj₁ a) f = inj₁ (f _ a)
 lmap (inj₂ b) f = inj₂ b
 
-case : {A B C : Set} → (A → C) → (B → C) → A ⊎ B → C
+case : ∀ {i j k}{A : Set i}{B : Set j}{C : Set k} → (A → C) → (B → C) → A ⊎ B → C
 case f g (inj₁ a) = f a
 case f g (inj₂ b) = g b
 
-case-lmap : ∀ {A A' B}(f : A → A')(ab : A ⊎ B) →
+case-lmap : ∀ {i j k}{A : Set i}{A' : Set j}{B : Set k}(f : A → A')(ab : A ⊎ B) →
   case (λ a → inj₁ (f a)) inj₂ ab ≡ lmap ab (λ _ → f)
 case-lmap f (inj₁ _) = refl
 case-lmap f (inj₂ _) = refl
 
 lmap-isLeft→ :
-  ∀ {A A' B}{ab : A ⊎ B}{f : isLeft ab → A → A'} → isLeft ab → isLeft (lmap ab f)
+  ∀ {i j k}{A : Set i}{A' : Set j}{B : Set k}
+    {ab : A ⊎ B}{f : isLeft ab → A → A'} → isLeft ab → isLeft (lmap ab f)
 lmap-isLeft→ {ab = inj₁ x} p = p
 
 lmap-isLeft← :
-  ∀ {A A' B}{ab : A ⊎ B}{f : isLeft ab → A → A'} → isLeft (lmap ab f) → isLeft ab
+  ∀ {i j k}{A : Set i}{A' : Set j}{B : Set k}
+    {ab : A ⊎ B}{f : isLeft ab → A → A'} → isLeft (lmap ab f) → isLeft ab
 lmap-isLeft← {ab = inj₁ x} p = p
 
 lmap-lmap :
-  ∀ {A A' A'' B : Set}(ab : A ⊎ B)
+  ∀ {i j k l}{A : Set i}{A' : Set j}{A'' : Set k}{B : Set l}
+    (ab : A ⊎ B)
     (f  : isLeft ab → A → A')
     (f' : isLeft (lmap ab f) → A' → A'')
     → lmap {A' = A''}(lmap ab f) f'
@@ -118,17 +129,18 @@ lmap-lmap :
 lmap-lmap (inj₁ x) f f' = refl
 lmap-lmap (inj₂ y) f f' = refl
 
-lmap-⊤ : ∀ {B}(ab : ⊤ ⊎ B) → lmap ab _ ≡ ab
+lmap-⊤ : ∀ {i j}{B : Set i}(ab : ⊤ {j} ⊎ B) → lmap ab _ ≡ ab
 lmap-⊤ (inj₁ x) = refl
 lmap-⊤ (inj₂ y) = refl
 
-getLeft : ∀ {A B} (ab : A ⊎ B) → isLeft ab → A
+getLeft : ∀ {i j}{A : Set i}{B : Set j} (ab : A ⊎ B) → isLeft ab → A
 getLeft (inj₁ a) p = a
 
 getLeft-lmap :
-  ∀ {A A' B}(ab : A ⊎ B)(f : isLeft ab → A → A')(p : isLeft (lmap ab f))
+  ∀ {i j k}{A : Set i}{A' : Set j}{B : Set k}
+    (ab : A ⊎ B)(f : isLeft ab → A → A')(p : isLeft (lmap ab f))
   → getLeft (lmap ab f) p ≡ f (lmap-isLeft← p) (getLeft ab (lmap-isLeft← p))
 getLeft-lmap (inj₁ x) f p = refl
 
-⊎⊥ : ∀ {A : Set} → A ⊎ ⊥ → A
+⊎⊥ : ∀ {i j}{A : Set i} → A ⊎ ⊥ {j} → A
 ⊎⊥ (inj₁ a) = a

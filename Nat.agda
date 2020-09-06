@@ -1,60 +1,59 @@
-{-# OPTIONS --type-in-type #-}
 
 module Nat where
 
 open import Lib
 open import CwF
 
-Nat : ∀ {Γ} → Ty Γ
+Nat : ∀ {i Γ} → Ty {i} Γ lzero
 Nat = ty (λ _ → ℕ) (λ _ → ⊥)
 
-Nat[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → Nat [ σ ]T ≡ Nat
+Nat[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → Nat [ σ ]T ≡ Nat
 Nat[] = refl
 
-Zero : ∀ {Γ} → Tm Γ Nat
+Zero : ∀ {i Γ} → Tm {i} Γ Nat
 Zero = tm (λ _ → zero) (λ ())
 
-Zero[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → Zero [ σ ]t ≡ Zero
+Zero[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → Zero [ σ ]t ≡ Zero
 Zero[] = Tm≡ (λ _ → refl) (λ _ → λ ())
 
-Suc : ∀ {Γ} → Tm Γ Nat → Tm Γ Nat
+Suc : ∀ {i Γ} → Tm {i} Γ Nat → Tm Γ Nat
 Suc t = tm (λ γ → suc (P t γ)) (λ ())
 
-Suc[] : ∀ {Γ Δ}{σ : Sub Γ Δ}{n} → (Suc n) [ σ ]t ≡ Suc (n [ σ ]t)
+Suc[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ}{n} → (Suc n) [ σ ]t ≡ Suc (n [ σ ]t)
 Suc[] = Tm≡ (λ _ → refl) (λ _ → λ ())
 
 NatElim :
-  ∀ {Γ}(Pr : Ty (Γ ▶ Nat))
+  ∀ {i j}{Γ : Con i}(Pr : Ty (Γ ▶ Nat) j)
   → Tm Γ (Pr [ < Zero > ]T)                   -- Pr zero
   → Tm (Γ ▶ Nat ▶ Pr) (Pr [ wk² ,ₛ Suc v₁ ]T) -- (∀ n → Pr n → Pr (suc n))
   → (n : Tm Γ Nat)
   → Tm Γ (Pr [ < n > ]T)
-P (NatElim {Γ} Pr PZ PS n) γ =
+P (NatElim {i}{j}{Γ} Pr PZ PS n) γ =
   natElim (λ n → P Pr (γ , n)) (P PZ γ) (λ n pn → P PS ((γ , n) , pn)) (P n γ)
-R (NatElim {Γ} Pr PZ PS n) {γ} =
+R (NatElim {i}{j}{Γ} Pr PZ PS n) {γ} =
   natElim (λ n → R Pr (natElim (λ n → P Pr (γ , n)) (P PZ γ) (λ n pn → P PS ((γ , n) , pn)) n)
                → R Γ γ)
           (R PZ)
           (λ n hyp RPr → case ⊎⊥ hyp (R PS RPr))
           (P n γ)
 
-Zeroβ : ∀ {Γ Pr PZ PS} →  NatElim {Γ} Pr PZ PS Zero ≡ PZ
+Zeroβ : ∀ {i j Γ Pr PZ PS} →  NatElim {i}{j}{Γ} Pr PZ PS Zero ≡ PZ
 Zeroβ = refl
 
 Sucβ :
-  ∀ {Γ Pr PZ PS n}
-  → NatElim {Γ} Pr PZ PS (Suc n) ≡ PS [ id ,ₛ n ,ₛ NatElim Pr PZ PS n ]t
-Sucβ {Γ} {Pr} {PZ} {PS} {n} = Tm≡ (λ _ → refl) R≡ where
+  ∀ {i j Γ Pr PZ PS n}
+  → NatElim {i}{j}{Γ} Pr PZ PS (Suc n) ≡ PS [ id ,ₛ n ,ₛ NatElim Pr PZ PS n ]t
+Sucβ {i}{j}{Γ} {Pr} {PZ} {PS} {n} = Tm≡ (λ _ → refl) R≡ where
   R≡ : _
   R≡ γ α with R PS α
   ... | inj₁ (inj₁ _) = refl
   ... | inj₂ y = refl
 
 NatElim[] :
-  ∀ {Γ Δ Pr PZ PS n}{σ : Sub Γ Δ}
-  → NatElim {Δ} Pr PZ PS n [ σ ]t
-  ≡ NatElim {Γ} (Pr [ σ ^ Nat ]T) (PZ [ σ ]t) (PS [ σ ^ Nat ^ Pr ]t) (n [ σ ]t)
-NatElim[] {Γ} {Δ} {Pr} {PZ} {PS} {n} {σ} = Tm≡ (λ _ → refl) R≡ where
+  ∀ {i j k Γ Δ Pr PZ PS n}{σ : Sub {i} Γ {j} Δ}
+  → NatElim {j}{k} {Δ} Pr PZ PS n [ σ ]t
+  ≡ NatElim (Pr [ σ ^ Nat ]T) (PZ [ σ ]t) (PS [ σ ^ Nat ^ Pr ]t) (n [ σ ]t)
+NatElim[] {i}{j}{k} {Γ} {Δ} {Pr} {PZ} {PS} {n} {σ} = Tm≡ (λ _ → refl) R≡ where
 
   -- Sorry. I practice the ancient art of pasting block-formatted
   -- induction motives into Agda

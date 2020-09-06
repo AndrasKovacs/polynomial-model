@@ -1,22 +1,20 @@
 
-{-# OPTIONS --type-in-type #-}
-
 module Unit where
 
 open import Lib
 open import CwF
 
-Unit : ∀ {Γ} → Ty Γ
+Unit : ∀ {i Γ} → Ty {i} Γ lzero
 Unit = ty (λ _ → ⊤) (λ _ → ⊥)
 
-Unit[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → Unit {Δ} [ σ ]T ≡ Unit
+Unit[] : ∀ {i j Γ Δ}{σ : Sub {i}Γ{j} Δ} → Unit [ σ ]T ≡ Unit
 Unit[] = refl
 
-Tt : ∀ {Γ} → Tm Γ Unit
+Tt : ∀ {i Γ} → Tm {i} Γ Unit
 Tt = tm (λ γ → tt) (λ ())
 
-Tt[] : ∀ {Γ Δ}{σ : Sub Γ Δ} → Tt [ σ ]t ≡ Tt
+Tt[] : ∀ {i j Γ Δ}{σ : Sub {i} Γ {j} Δ} → Tt [ σ ]t ≡ Tt
 Tt[] {Γ} {Δ} {σ} = Tm≡ (λ _ → refl) (λ _ → λ ())
 
-Unitη : ∀ {Γ}{t : Tm Γ Unit} → t ≡ Tt
-Unitη {Γ} {t} = Tm≡ (λ _ → refl) (λ _ → λ ())
+Unitη : ∀ {i Γ}{t : Tm {i} Γ Unit} → t ≡ Tt
+Unitη = Tm≡ (λ _ → refl) (λ _ → λ ())
