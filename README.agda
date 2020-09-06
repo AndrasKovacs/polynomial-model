@@ -13,7 +13,8 @@ feature-rich type theory.
 
 This project was checked with Agda 2.6.1 with standard library 1.3.
 
-We use funext and UIP in the metatheory.
+We use funext and UIP in the metatheory. I intend to get rid of --type-in-type
+shortly and enable --safe.
 
 -}
 
