@@ -16,6 +16,10 @@ import Axiom.Extensionality.Propositional as Axiom
 open import Data.Bool using (true; false; Bool) public
 open import Data.Nat using (zero; suc; ℕ) public
 
+boolElim : ∀ (P : Bool → Set) → P true → P false → ∀ b → P b
+boolElim P pt pf false = pf
+boolElim P pt pf true = pt
+
 natElim : ∀ (P : ℕ → Set) → P zero → (∀ n → P n → P (suc n)) → ∀ n → P n
 natElim P pz ps zero = pz
 natElim P pz ps (suc n) = ps n (natElim P pz ps n)
