@@ -22,7 +22,7 @@ R (lam t) (α , β* , p) = getLeft (R t β*) (lmap-isLeft← p)
 
 app[] :
   ∀ {i j k l Γ Δ A B}{t : Tm Δ (Π {j}{k}{l} A B)}{σ : Sub {i} Γ Δ}
-  → app (t [ σ ]t) ≡ app t [ σ ∘ π₁ id ,ₛ π₂ id ]t
+  → app (t [ σ ]t) ≡ app t [ σ ^ A ]t
 app[] {i}{j}{k}{l} {Γ} {Δ} {A} {B} {t} {σ} =
   Tm≡ (λ {(γ , α) → refl})
       (λ {(γ , α) tα* →
