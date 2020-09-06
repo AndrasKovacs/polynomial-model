@@ -36,3 +36,6 @@ Proj1β = refl
 
 Proj2β : ∀ {i j k Γ A B t u} → Proj2 (Pair {i}{j}{k}{Γ}{A}{B} t u) ≡ u
 Proj2β = refl
+
+Pairη : ∀ {i j k Γ A B t} → Pair {i}{j}{k}{Γ}{A}{B} (Proj1 t) (Proj2 t) ≡ t
+Pairη = Tm≡ (λ _ → refl) (λ { γ (inj₁ _) → refl ; γ (inj₂ _) → refl})
