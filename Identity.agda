@@ -16,10 +16,10 @@ Refl t = tm (λ _ → refl) ⊥-elim
 
 Refl[] : ∀ {i j k Γ Δ}{A : Ty Δ k}{t : Tm Δ A}{σ : Sub {i} Γ {j} Δ}
          → Refl t [ σ ]t ≡ Refl (t [ σ ]t)
-Refl[] {Γ} {Δ} {A} {t} {σ} = Tm≡ (λ _ → refl) (λ γ → λ ())
+Refl[] = Tm≡ (λ _ → refl) (λ γ → λ ())
 
 UIP' : ∀ {i j Γ A}{t u : Tm {i} Γ {j} A}{e e' : Tm Γ (Id t u)} → Tm Γ (Id e e')
-UIP' {Γ} {A} {t} {u} {e} {e'} = tm (λ _ → UIP _ _) ⊥-elim
+UIP' = tm (λ _ → UIP _ _) ⊥-elim
 
 Tr : ∀ {i j k Γ A}(B : Ty (Γ ▶ A) k){t u : Tm {i} Γ {j} A}(e : Tm Γ (Id t u))
      → Tm Γ (B [ < t > ]T) → Tm Γ (B [ < u > ]T)
@@ -32,8 +32,8 @@ Tr {i}{j}{k}{Γ} {A} B e pt  =
 Tr[] : ∀ {i j k l Γ Δ A B t u e pt}{σ : Sub {i} Γ {j} Δ}
        → Tr {j}{k}{l} {Δ}{A} B {t} {u} e pt [ σ ]t
        ≡ Tr (B [ σ ^ A ]T) {t [ σ ]t}{u [ σ ]t} (e [ σ ]t) (pt [ σ ]t)
-Tr[] {Γ} {Δ} {A} {B} {t} {u} {e} {pt} {σ} =
-  refl
+Tr[] = refl
+
 
 Trβ : ∀ {i j k Γ A B t pt} → Tr {i}{j}{k}{Γ}{A} B {t}{t} (Refl t) pt ≡ pt
 Trβ = refl

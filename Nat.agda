@@ -43,7 +43,7 @@ Zeroβ = refl
 Sucβ :
   ∀ {i j Γ Pr PZ PS n}
   → NatElim {i}{j}{Γ} Pr PZ PS (Suc n) ≡ PS [ id ,ₛ n ,ₛ NatElim Pr PZ PS n ]t
-Sucβ {i}{j}{Γ} {Pr} {PZ} {PS} {n} = Tm≡ (λ _ → refl) R≡ where
+Sucβ {PS = PS} = Tm≡ (λ _ → refl) R≡ where
   R≡ : _
   R≡ γ α with R PS α
   ... | inj₁ (inj₁ _) = refl
