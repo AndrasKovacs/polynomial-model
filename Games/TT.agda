@@ -2,7 +2,6 @@
 {-# OPTIONS --type-in-type --postfix-projections #-}
 
 module Games.TT where
-
 open import Lib
 
 --------------------------------------------------------------------------------
@@ -11,236 +10,219 @@ record Con : Set where
   coinductive
   constructor send
   field
-    Q    : Set
-    step : Q → Con
+    M    : Set
+    next : M → Con
 open Con
 
 record Sub (Γ Δ : Con) : Set where
   coinductive
   constructor sub
   field
-    Q    : Q Γ → Q Δ
-    step : ∀ q → Sub (step Δ (Q q)) (step Γ q)
+    M    : M Γ → M Δ
+    next : ∀ γ → Sub (next Δ (M γ)) (next Γ γ)
 open Sub
 
--- record Sub≡ {Γ Δ}(σ δ : Sub Γ Δ) : Set where
---   coinductive
---   constructor sub≡
---   field
---     Q    : ∀ q → σ .Q q ≡ δ .Q q
---     step : ∀ q → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (Q q) (σ .step q))
---                       (δ .step q)
--- open Sub≡
-
--- infix 6 _ˢ⁻¹
--- {-# TERMINATING #-}
--- _ˢ⁻¹ : ∀ {Γ Δ σ δ} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ σ
--- (e ˢ⁻¹) .Q    q = e .Q q ⁻¹
--- _ˢ⁻¹ {Γ} {Δ} {σ} {δ} e .step q =
---    J (λ δQq eQq →
---           (δstepq : Sub (step Δ (δQq)) (step Γ q))
---         → (hyp : Sub≡ (δstepq)
---                       (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq) (σ .step q)))
---         → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq ⁻¹) (δstepq))
---                (σ .step q))
---      (e .Q q)
---      (λ _ hyp → hyp)
---      (δ .step q)
---      (e .step q ˢ⁻¹)
-
--- infixr 4 _ˢ◾_
--- postulate
---   _ˢ◾_ : ∀ {Γ Δ σ δ ν} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ ν → Sub≡ σ ν
-
-
 id : ∀ {Γ} → Sub Γ Γ
-id .Q    q = q
-id .step q = id
+id {Γ} .M    γ = γ
+id {Γ} .next γ = id {Γ .next γ}
 
 infixr 5 _∘_
 _∘_ : ∀ {Γ Δ Ξ} → Sub Δ Ξ → Sub Γ Δ → Sub Γ Ξ
-(σ ∘ δ) .Q    q = σ .Q (δ .Q q)
-(σ ∘ δ) .step q = δ .step q ∘ σ .step (δ .Q q)
-
--- idl : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (id ∘ σ) σ
--- idr : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (σ ∘ id) σ
--- idl σ .Q    _ = refl
--- idl σ .step q = idr (σ .step q)
--- idr σ .Q    _ = refl
--- idr σ .step q = idl (σ .step q)
-
--- {-# TERMINATING #-}
--- ass : ∀ {Γ Δ Σ Ξ}(σ : Sub Σ Ξ)(δ : Sub Δ Σ)(ν : Sub Γ Δ)
---       → Sub≡ ((σ ∘ δ) ∘ ν) (σ ∘ δ ∘ ν)
--- ass σ δ ν .Q    _ = refl
--- ass σ δ ν .step q = ass (ν .step q) (δ .step (ν .Q q)) (σ .step (δ .Q (ν .Q q))) ˢ⁻¹
-
-Bot : Con
-Bot .Q    = ⊥
-Bot .step ()
-
-Init : ∀ {Γ} → Sub Bot Γ
-Init .Q  ()
-Init .step ()
-
-Top : Con
-Top .Q      = ⊤
-Top .step _ = Bot
-
-Final : ∀ {Γ} → Sub Γ Top
-Final .Q    _ = _
-Final .step _ = Init
-
---------------------------------------------------------------------------------
-
-record Conᴬ (Γ : Con) : Set
-record Conᴮ (Γ : Con) : Set
-
-record Conᴬ Γ where
-  coinductive
-  field
-    move : Γ .Q
-    step : Conᴮ (Γ .step move)
-open Conᴬ
-
-record Conᴮ Γ where
-  coinductive
-  field
-    step : ∀ q → Conᴬ (Γ .step q)
-open Conᴮ
-
-Subᴬ : ∀ {Γ Δ} → Sub Γ Δ → Conᴬ Γ → Conᴬ Δ
-Subᴮ : ∀ {Γ Δ} → Sub Δ Γ → Conᴮ Γ → Conᴮ Δ
-Subᴬ σ γ .move   = σ .Q (γ .move)
-Subᴬ σ γ .step   = Subᴮ (σ .step (γ .move)) (γ .step)
-Subᴮ σ γ .step q = Subᴬ (σ .step q) (γ .step (σ .Q q))
-
---------------------------------------------------------------------------------
+(σ ∘ δ) .M    m = σ .M (δ .M m)
+(σ ∘ δ) .next m = δ .next m ∘ σ .next (δ .M m)
 
 infixr 4 _+_
 _+_ : Con → Con → Con
-(Γ + Δ) .Q    = Γ .Q ⊎ Δ .Q
-(Γ + Δ) .step = case (Γ .step) (Δ .step)
+(Γ + Δ) .M    = Γ .M ⊎ Δ .M
+(Γ + Δ) .next = case (Γ .next) (Δ .next)
 
 Inj₁ : ∀ {Γ Δ} → Sub Γ (Γ + Δ)
-Inj₁ .Q    q = inj₁ q
-Inj₁ .step q = id
+Inj₁ .M    γ = inj₁ γ
+Inj₁ .next γ = id
 
 Inj₂ : ∀ {Γ Δ} → Sub Δ (Γ + Δ)
-Inj₂ .Q    q = inj₂ q
-Inj₂ .step q = id
+Inj₂ .M    δ = inj₂ δ
+Inj₂ .next δ = id
 
-Copair : ∀ {Γ Δ Ξ} → Sub Γ Ξ → Sub Δ Ξ → Sub (Γ + Δ) Ξ
-Copair σ δ .Q    = case (σ .Q) (δ .Q)
-Copair σ δ .step = ⊎-elim _ (σ .step) (δ .step)
++-rec : ∀ {Γ Δ Ξ} → Sub Γ Ξ → Sub Δ Ξ → Sub (Γ + Δ) Ξ
++-rec σ δ .M    = case (σ .M) (δ .M)
++-rec σ δ .next = ⊎-elim _ (σ .next) (δ .next)
 
-Bracket : ∀ {Γ Γ' Δ Δ'} → Sub Γ Γ' → Sub Δ Δ' → Sub (Γ + Δ) (Γ' + Δ')
-Bracket f g = Copair (Inj₁ ∘ f) (Inj₂ ∘ g)
+⊘ : Con
+⊘ .M    = ⊥
+⊘ .next ()
 
---------------------------------------------------------------------------------
+init : ∀ {Γ} → Sub ⊘ Γ
+init .M  ()
+init .next ()
 
-infixl 4 _*_
-_*_ : Con → Con → Con
-(Γ * Δ) .Q             = Γ .Q × Δ .Q
-(Γ * Δ) .step (q , q') = Γ .step q + Δ .step q'
+∙ : Con
+∙ .M      = ⊤
+∙ .next _ = ⊘
 
-Proj₁ : ∀ {Γ Δ} → Sub (Γ * Δ) Γ
-Proj₁ .Q    (q , q') = q
-Proj₁ .step (q , q') = Inj₁
-
-Proj₂ : ∀ {Γ Δ} → Sub (Γ * Δ) Δ
-Proj₂ .Q    (q , q') = q'
-Proj₂ .step (q , q') = Inj₂
-
-Pair : ∀ {Γ Δ Ξ} → Sub Γ Δ → Sub Γ Ξ → Sub Γ (Δ * Ξ)
-Pair σ δ .Q    q = (σ .Q q) , (δ .Q q)
-Pair σ δ .step q = Copair (σ .step q) (δ .step q)
-
--- record Ty (Γ : Con) : Set where
---   constructor ty
---   field
---     Q* : Γ .Q → Σ Set λ Q* → Q* → Set
---     -- A* : ∀ {q} → Q* q → Set
--- open Ty
+ε : ∀ {Γ} → Sub Γ ∙
+ε .M    _ = _
+ε .next _ = init
 
 Ty : Con → Set
-Ty Γ = Γ .Q → Con
+Ty Γ = Γ .M → Con
+
+infix 6 _[_]T
+_[_]T : ∀ {Γ Δ} → Ty Δ → Sub Γ Δ → Ty Γ
+(A [ σ ]T) γ = A (σ .M γ)
+
+[id]T : ∀ {Γ}{A : Ty Γ} → A [ id {Γ} ]T ≡ A
+[id]T = refl
+
+[∘]T : ∀ {Γ Δ Σ}{A : Ty Σ}{σ : Sub Δ Σ}{δ : Sub Γ Δ} → A [ σ ]T [ δ ]T ≡ A [ σ ∘ δ ]T
+[∘]T = refl
+
+record Tm (Γ : Con)(A : Ty Γ) : Set where
+  constructor tm
+  field
+    M    : ∀ γ → M (A γ)
+    next : ∀ γ → Sub (A γ .next (M γ)) (Γ .next γ)
+open Tm
+
+infix 6 _[_]t
+_[_]t : ∀ {Γ Δ A}(t : Tm Δ A)(σ : Sub Γ Δ) → Tm Γ (A [ σ ]T)
+(t [ σ ]t) .M    γ = t .M (σ .M γ)
+(t [ σ ]t) .next γ = σ .next γ ∘ t .next (σ .M γ)
+
+infixl 3 _▶_
+_▶_ : (Γ : Con) → Ty Γ → Con
+(Γ ▶ A) .M            = ∃ λ γ → A γ .M
+(Γ ▶ A) .next (γ , α) = Γ .next γ + A _ .next α
+
+p : ∀ {Γ A} → Sub (Γ ▶ A) Γ
+p .M    (γ , α) = γ
+p .next (γ , α) = Inj₁
+
+q : ∀ {Γ A} → Tm (Γ ▶ A) (A [ p {Γ}{A} ]T)
+q .M    (γ , α) = α
+q .next (γ , α) = Inj₂
+
+infixl 3 _,ₛ_
+_,ₛ_ : ∀ {Γ Δ A}(σ : Sub Γ Δ) → Tm Γ (A [ σ ]T) → Sub Γ (Δ ▶ A)
+(σ ,ₛ t) .M    γ = (σ .M γ) , (t .M γ)
+(σ ,ₛ t) .next γ = +-rec (σ .next γ) (t .next γ)
 
 
--- Exponential
+-- Pi
 --------------------------------------------------------------------------------
 
-_⇒_ : Con → Con → Con
-(Γ ⇒ Δ) .Q                         = Sub (send (Γ .Q) λ q → Top + Γ .step q) Δ
-(Γ ⇒ Δ) .step σ .Q                 = ∃₂ λ q a' → isLeft (σ .step q .Q a')
-(Γ ⇒ Δ) .step σ .step (q , a' , p) = Δ .step (σ .Q q) .step a'
+Π : ∀ {Γ}(A : Ty Γ) → Ty (Γ ▶ A) → Ty Γ
+Π A B γ .M                         = Tm (send (A γ .M) λ α → ∙ + A γ .next α) (λ α → B (γ , α))
+Π A B γ .next t .M                 = ∃₂ λ α β' → isLeft (t .next α .M β')
+Π A B γ .next t .next (α , β' , p) = B (γ , α) .next (t .M α) .next β'
 
-Lam : ∀ {Γ B C} → Sub (Γ * B) C → Sub Γ (B ⇒ C)
-Lam σ .Q q .Q    q'           = σ .Q (q , q')
-Lam σ .Q q .step q' .Q    a'' = lmap (σ .step _ .Q a'') _
-Lam σ .Q q .step q' .step a'' with σ .step _ .Q a'' | σ .step _ .step a''
-... | inj₁ a  | σ' = Init
-... | inj₂ a' | σ' = σ'
-Lam σ .step q .Q (q' , a'' , p) with σ .step _ .Q a''
-... | inj₁ a = a
-... | inj₂ _ = ⊥-elim p
-Lam σ .step q .step (q' , a'' , p) with σ .step _ .Q a'' | σ .step _ .step a''
-... | inj₁ a | σ' = σ'
-... | inj₂ _ | _  = ⊥-elim p
+Lam : ∀ {Γ A B} → Tm (Γ ▶ A) B → Tm Γ (Π {Γ} A B)
+Lam t .M γ .M    α       = t .M (γ , α)
+Lam t .M γ .next α .M β' = lmap (t .next (γ , α) .M β') _
+Lam t .M γ .next α .next β' with t .next (γ , α) .M β' | t .next (γ , α) .next β'
+... | inj₁ γ' | t' = init
+... | inj₂ α' | t' = t'
+Lam t .next γ .M (α , β' , p) with t .next (γ , α) .M β'
+... | inj₁ γ' = γ'
+... | inj₂ α' = ⊥-elim p
+Lam t .next γ .next (α , β' , p) with t .next (γ , α) .M β' | t .next (γ , α) .next β'
+... | inj₁ γ' | t' = t'
+... | inj₂ α' | t' = ⊥-elim p
 
-App : ∀ {Γ B C} → Sub Γ (B ⇒ C) → Sub (Γ * B) C
-App σ .Q    (q , q') = σ .Q q .Q q'
-App σ .step (q , q') .Q a'' with σ .Q q .step q' .Q a'' | inspect (σ .Q q .step q' .Q) a''
-                               | σ .Q q .step q' .step a''
-... | inj₁ tt | [ eq ] | σ' = inj₁ (σ .step q .Q (q' , a'' , tr isLeft (eq ⁻¹) tt))
-... | inj₂ a' | [ eq ] | σ' = inj₂ a'
-App σ .step (q , q') .step a'' with σ .Q q .step q' .Q a'' | inspect (σ .Q q .step q' .Q) a''
-                                  | σ .Q q .step q' .step a''
-... | inj₁ tt | [ eq ] | σ' = σ .step q .step (q' , a'' , tr isLeft (eq ⁻¹) tt)
-... | inj₂ a' | eq     | σ' = σ'
+App : ∀ {Γ A B} → Tm Γ (Π {Γ} A B) → Tm (Γ ▶ A) B
+App t .M    (γ , α) = t .M γ .M α
+App t .next (γ , α) .M    β' with t .M γ .next α .M β' | inspect (t .M γ .next α .M) β'
+                                | t .M γ .next α .next β'
+... | inj₁ tt | [ eq ] | t' = inj₁ (t .next γ .M (α , β' , tr isLeft (eq ⁻¹) tt))
+... | inj₂ α' | [ eq ] | t' = inj₂ α'
+App t .next (γ , α) .next β' with t .M γ .next α .M β' | inspect (t .M γ .next α .M) β'
+                                | t .M γ .next α .next β'
+... | inj₁ tt | [ eq ] | t' = t .next γ .next _
+... | inj₂ α' | [ eq ] | t' = t'
 
--- --------------------------------------------------------------------------------
 
--- Nat : Con
--- Nat .Q      = ℕ
--- Nat .step _ = Bot
+-- Sigma
+--------------------------------------------------------------------------------
 
--- Zero : Sub Top Nat
--- Zero .Q    _ = zero
--- Zero .step _ = Init
+Sg : ∀ {Γ}(A : Ty Γ) → Ty (Γ ▶ A) → Ty Γ
+Sg A B γ .M            = Σ (A γ .M) λ α → B (γ , α) .M
+Sg A B γ .next (α , β) = A γ .next α + B (γ , α) .next β
 
--- Suc : Sub Nat Nat
--- Suc .Q      = suc
--- Suc .step _ = Init
+Proj₁ : ∀ {Γ A B} → Tm Γ (Sg {Γ} A B) → Tm Γ A
+Proj₁ t .M    γ = t .M γ .₁
+Proj₁ t .next γ = t .next γ ∘ Inj₁
 
--- NatRec : ∀ {Γ} → Sub Top Γ → Sub Γ Γ → Sub Nat Γ
--- NatRec z s .Q    zero    = z .Q tt
--- NatRec z s .Q    (suc n) = s .Q (NatRec z s .Q n)
--- NatRec z s .step zero    = z .step tt
--- NatRec z s .step (suc n) = NatRec z s .step n ∘ s .step (NatRec z s .Q n)
+Proj₂ : ∀ {Γ A B}(t : Tm Γ (Sg {Γ} A B)) → Tm Γ (B [ id ,ₛ Proj₁ t ]T)
+Proj₂ t .M    γ = t .M γ .₂
+Proj₂ t .next γ = t .next γ ∘ Inj₂
 
--- --------------------------------------------------------------------------------
+Pair : ∀ {Γ A B}(t : Tm Γ A) → Tm Γ (B [ id ,ₛ t ]T) → Tm Γ (Sg {Γ} A B)
+Pair t u .M    γ = (t .M γ) , (u .M γ)
+Pair t u .next γ = +-rec (t .next γ) (u .next γ)
 
--- data list (A : Set) : Set where
---   [] : list A
---   _∷_ : A → list A → list A
--- infixr 4 _∷_
 
--- List : Con → Con
--- List Γ .Q             = list (Γ .Q)
--- List Γ .step []       = Bot
--- List Γ .step (q ∷ qs) = Γ .step q + List Γ .step qs
+-- Universe
+--------------------------------------------------------------------------------
 
--- Nil : ∀ {Γ} → Sub Top (List Γ)
--- Nil .Q    _ = []
--- Nil .step _ = Init
+U : ∀ {Γ} → Ty Γ
+U γ .M      = Con
+U γ .next _ = ⊘
 
--- Cons : ∀ {Γ} → Sub (Γ * List Γ) (List Γ)
--- Cons .Q    (q , qs) = q ∷ qs
--- Cons .step (q , qs) = id
+El : ∀ {Γ} → Tm Γ (U {Γ}) → Ty Γ
+El a γ .M    = a .M γ .M
+El a γ .next = a .M γ .next
 
--- Foldr : ∀ {Γ Δ} → Sub Top Δ → Sub (Γ * Δ) Δ → Sub (List Γ) Δ
--- Foldr n c .Q    []       = n .Q tt
--- Foldr n c .Q    (q ∷ qs) = c .Q (q , Foldr n c .Q qs)
--- Foldr n c .step []       = n .step tt
--- Foldr n c .step (q ∷ qs) = Bracket id (Foldr n c .step qs) ∘ c .step (q , Foldr n c .Q qs)
+code : ∀ {Γ} → Ty Γ → Tm Γ (U {Γ})
+code A .M    γ = A γ
+code A .next γ = init
+
+-- Identity
+--------------------------------------------------------------------------------
+
+Id : ∀ {Γ A} → Tm Γ A → Tm Γ A → Ty Γ
+Id {Γ}{A} t u γ .M      = t .M γ ≡ u .M γ
+Id {Γ}{A} t u γ .next p = ⊘
+
+Refl : ∀ {Γ A}(t : Tm Γ A) → Tm Γ (Id t t)
+Refl t .M    γ = refl
+Refl t .next γ = init
+
+UIP' : ∀ {Γ A}{t u : Tm Γ A}{e e' : Tm Γ (Id t u)} → Tm Γ (Id e e')
+UIP' .M    γ = UIP _ _
+UIP' .next γ = init
+
+Tr : ∀ {Γ A}(B : Ty (Γ ▶ A)){t u : Tm Γ A}(e : Tm Γ (Id t u))
+     → Tm Γ (B [ id ,ₛ t ]T) → Tm Γ (B [ id ,ₛ u ]T)
+Tr {Γ} {A} B {t} {u} e bt .M    γ = tr (λ x → M (B (γ , x))) (e .M γ) (bt .M γ)
+Tr {Γ} {A} B {t} {u} e bt .next γ =
+  J (λ uγ eq → Sub (B (γ , uγ) .next (tr (λ x → M (B (γ , x))) eq (bt .M γ)))
+                   (Γ .next γ))
+    (e .M γ) (bt .next γ)
+
+
+-- Nat
+--------------------------------------------------------------------------------
+
+Nat : ∀ {Γ} → Ty Γ
+Nat γ .M      = ℕ
+Nat γ .next _ = ⊘
+
+Zero : ∀ {Γ} → Tm Γ (Nat {Γ})
+Zero .M    _ = zero
+Zero .next γ = init
+
+Suc : ∀ {Γ} → Tm Γ (Nat {Γ}) → Tm Γ (Nat {Γ})
+Suc t .M    γ = suc (t .M γ)
+Suc t .next γ = init
+
+NatElim : ∀ {Γ}(B : Ty (Γ ▶ Nat {Γ}))
+          → Tm Γ (B [ id ,ₛ Zero {Γ} ]T)
+          → Tm (Γ ▶ Nat {Γ} ▶ B) (λ {((γ , n) , bn) → B (γ , suc n)})
+          → Tm (Γ ▶ Nat {Γ}) B
+NatElim B z s .M    (γ , zero)  = z .M γ
+NatElim B z s .M    (γ , suc n) = s .M ((γ , n) , NatElim B z s .M (γ , n))
+NatElim B z s .next (γ , zero)  = Inj₁ ∘ z .next γ
+NatElim B z s .next (γ , suc n) = +-rec id (NatElim B z s .next (γ , n)) ∘ s .next ((γ , n), _)
+
+
+--------------------------------------------------------------------------------

@@ -147,6 +147,11 @@ v₀ = π₂ id
 v₁ : ∀ {i j k}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▶ A) k} → Tm (Γ ▶ A ▶ B) (A [ wk ∘ wk ]T)
 v₁ = π₂ (π₁ id)
 
+v₂ : ∀ {i j k l}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▶ A) k}
+                {C : Ty (Γ ▶ A ▶ B) l}
+     → Tm (Γ ▶ A ▶ B ▶ C) (A [ wk ∘ wk ∘ wk ]T)
+v₂ = π₂ (π₁ (π₁ id))
+
 infixl 3 _^_
 _^_ : ∀ {i j k Γ Δ}(σ : Sub {i}Γ {j} Δ)(A : Ty Δ k) → Sub (Γ ▶ A [ σ ]T) (Δ ▶ A)
 _^_ σ A = σ ∘ wk ,ₛ v₀
