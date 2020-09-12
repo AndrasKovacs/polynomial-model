@@ -34,6 +34,11 @@ natElim P pz ps (suc n) = ps n (natElim P pz ps n)
 coe : ∀ {i}{A B : Set i} → A ≡ B → A → B
 coe refl x = x
 
+J :
+  ∀ {α β}{A : Set α} {x : A}(P : ∀ y → x ≡ y → Set β)
+  → {y : A} → (w : x ≡ y) → P x refl → P y w
+J P refl p = p
+
 J⁻¹ :
   ∀ {α β}{A : Set α} {x : A}(P : ∀ y → x ≡ y → Set β)
   → {y : A} → (w : x ≡ y) → P y w → P x refl

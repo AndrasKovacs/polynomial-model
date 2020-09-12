@@ -1,7 +1,7 @@
 
 {-# OPTIONS --type-in-type --postfix-projections #-}
 
-module Games.STT5 where
+module Games.TT where
 
 open import Lib
 
@@ -23,34 +23,34 @@ record Sub (Γ Δ : Con) : Set where
     step : ∀ q → Sub (step Δ (Q q)) (step Γ q)
 open Sub
 
-record Sub≡ {Γ Δ}(σ δ : Sub Γ Δ) : Set where
-  coinductive
-  constructor sub≡
-  field
-    Q    : ∀ q → σ .Q q ≡ δ .Q q
-    step : ∀ q → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (Q q) (σ .step q))
-                      (δ .step q)
-open Sub≡
+-- record Sub≡ {Γ Δ}(σ δ : Sub Γ Δ) : Set where
+--   coinductive
+--   constructor sub≡
+--   field
+--     Q    : ∀ q → σ .Q q ≡ δ .Q q
+--     step : ∀ q → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (Q q) (σ .step q))
+--                       (δ .step q)
+-- open Sub≡
 
-infix 6 _ˢ⁻¹
-{-# TERMINATING #-}
-_ˢ⁻¹ : ∀ {Γ Δ σ δ} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ σ
-(e ˢ⁻¹) .Q    q = e .Q q ⁻¹
-_ˢ⁻¹ {Γ} {Δ} {σ} {δ} e .step q =
-   J (λ δQq eQq →
-          (δstepq : Sub (step Δ (δQq)) (step Γ q))
-        → (hyp : Sub≡ (δstepq)
-                      (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq) (σ .step q)))
-        → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq ⁻¹) (δstepq))
-               (σ .step q))
-     (e .Q q)
-     (λ _ hyp → hyp)
-     (δ .step q)
-     (e .step q ˢ⁻¹)
+-- infix 6 _ˢ⁻¹
+-- {-# TERMINATING #-}
+-- _ˢ⁻¹ : ∀ {Γ Δ σ δ} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ σ
+-- (e ˢ⁻¹) .Q    q = e .Q q ⁻¹
+-- _ˢ⁻¹ {Γ} {Δ} {σ} {δ} e .step q =
+--    J (λ δQq eQq →
+--           (δstepq : Sub (step Δ (δQq)) (step Γ q))
+--         → (hyp : Sub≡ (δstepq)
+--                       (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq) (σ .step q)))
+--         → Sub≡ (tr (λ x → Sub (step Δ x) (step Γ q)) (eQq ⁻¹) (δstepq))
+--                (σ .step q))
+--      (e .Q q)
+--      (λ _ hyp → hyp)
+--      (δ .step q)
+--      (e .step q ˢ⁻¹)
 
-infixr 4 _ˢ◾_
-postulate
-  _ˢ◾_ : ∀ {Γ Δ σ δ ν} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ ν → Sub≡ σ ν
+-- infixr 4 _ˢ◾_
+-- postulate
+--   _ˢ◾_ : ∀ {Γ Δ σ δ ν} → Sub≡ {Γ}{Δ} σ δ → Sub≡ δ ν → Sub≡ σ ν
 
 
 id : ∀ {Γ} → Sub Γ Γ
@@ -62,18 +62,18 @@ _∘_ : ∀ {Γ Δ Ξ} → Sub Δ Ξ → Sub Γ Δ → Sub Γ Ξ
 (σ ∘ δ) .Q    q = σ .Q (δ .Q q)
 (σ ∘ δ) .step q = δ .step q ∘ σ .step (δ .Q q)
 
-idl : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (id ∘ σ) σ
-idr : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (σ ∘ id) σ
-idl σ .Q    _ = refl
-idl σ .step q = idr (σ .step q)
-idr σ .Q    _ = refl
-idr σ .step q = idl (σ .step q)
+-- idl : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (id ∘ σ) σ
+-- idr : ∀ {Γ Δ}(σ : Sub Γ Δ) → Sub≡ (σ ∘ id) σ
+-- idl σ .Q    _ = refl
+-- idl σ .step q = idr (σ .step q)
+-- idr σ .Q    _ = refl
+-- idr σ .step q = idl (σ .step q)
 
-{-# TERMINATING #-}
-ass : ∀ {Γ Δ Σ Ξ}(σ : Sub Σ Ξ)(δ : Sub Δ Σ)(ν : Sub Γ Δ)
-      → Sub≡ ((σ ∘ δ) ∘ ν) (σ ∘ δ ∘ ν)
-ass σ δ ν .Q    _ = refl
-ass σ δ ν .step q = ass (ν .step q) (δ .step (ν .Q q)) (σ .step (δ .Q (ν .Q q))) ˢ⁻¹
+-- {-# TERMINATING #-}
+-- ass : ∀ {Γ Δ Σ Ξ}(σ : Sub Σ Ξ)(δ : Sub Δ Σ)(ν : Sub Γ Δ)
+--       → Sub≡ ((σ ∘ δ) ∘ ν) (σ ∘ δ ∘ ν)
+-- ass σ δ ν .Q    _ = refl
+-- ass σ δ ν .step q = ass (ν .step q) (δ .step (ν .Q q)) (σ .step (δ .Q (ν .Q q))) ˢ⁻¹
 
 Bot : Con
 Bot .Q    = ⊥
@@ -156,6 +156,16 @@ Pair : ∀ {Γ Δ Ξ} → Sub Γ Δ → Sub Γ Ξ → Sub Γ (Δ * Ξ)
 Pair σ δ .Q    q = (σ .Q q) , (δ .Q q)
 Pair σ δ .step q = Copair (σ .step q) (δ .step q)
 
+-- record Ty (Γ : Con) : Set where
+--   constructor ty
+--   field
+--     Q* : Γ .Q → Σ Set λ Q* → Q* → Set
+--     -- A* : ∀ {q} → Q* q → Set
+-- open Ty
+
+Ty : Con → Set
+Ty Γ = Γ .Q → Con
+
 
 -- Exponential
 --------------------------------------------------------------------------------
@@ -189,65 +199,48 @@ App σ .step (q , q') .step a'' with σ .Q q .step q' .Q a'' | inspect (σ .Q q 
 ... | inj₁ tt | [ eq ] | σ' = σ .step q .step (q' , a'' , tr isLeft (eq ⁻¹) tt)
 ... | inj₂ a' | eq     | σ' = σ'
 
---------------------------------------------------------------------------------
+-- --------------------------------------------------------------------------------
 
-Nat : Con
-Nat .Q      = ℕ
-Nat .step _ = Bot
+-- Nat : Con
+-- Nat .Q      = ℕ
+-- Nat .step _ = Bot
 
-Zero : Sub Top Nat
-Zero .Q    _ = zero
-Zero .step _ = Init
+-- Zero : Sub Top Nat
+-- Zero .Q    _ = zero
+-- Zero .step _ = Init
 
-Suc : Sub Nat Nat
-Suc .Q      = suc
-Suc .step _ = Init
+-- Suc : Sub Nat Nat
+-- Suc .Q      = suc
+-- Suc .step _ = Init
 
-NatRec : ∀ {Γ} → Sub Top Γ → Sub Γ Γ → Sub Nat Γ
-NatRec z s .Q    zero    = z .Q tt
-NatRec z s .Q    (suc n) = s .Q (NatRec z s .Q n)
-NatRec z s .step zero    = z .step tt
-NatRec z s .step (suc n) = NatRec z s .step n ∘ s .step (NatRec z s .Q n)
+-- NatRec : ∀ {Γ} → Sub Top Γ → Sub Γ Γ → Sub Nat Γ
+-- NatRec z s .Q    zero    = z .Q tt
+-- NatRec z s .Q    (suc n) = s .Q (NatRec z s .Q n)
+-- NatRec z s .step zero    = z .step tt
+-- NatRec z s .step (suc n) = NatRec z s .step n ∘ s .step (NatRec z s .Q n)
 
-Add : Sub Nat (Nat ⇒ Nat)
-Add = NatRec (Lam Proj₂) (Lam (Suc ∘ App Proj₁ ∘ Pair id Proj₂))
+-- --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
+-- data list (A : Set) : Set where
+--   [] : list A
+--   _∷_ : A → list A → list A
+-- infixr 4 _∷_
 
-data list (A : Set) : Set where
-  [] : list A
-  _∷_ : A → list A → list A
-infixr 4 _∷_
+-- List : Con → Con
+-- List Γ .Q             = list (Γ .Q)
+-- List Γ .step []       = Bot
+-- List Γ .step (q ∷ qs) = Γ .step q + List Γ .step qs
 
-List : Con → Con
-List Γ .Q             = list (Γ .Q)
-List Γ .step []       = Bot
-List Γ .step (q ∷ qs) = Γ .step q + List Γ .step qs
+-- Nil : ∀ {Γ} → Sub Top (List Γ)
+-- Nil .Q    _ = []
+-- Nil .step _ = Init
 
-Nil : ∀ {Γ} → Sub Top (List Γ)
-Nil .Q    _ = []
-Nil .step _ = Init
+-- Cons : ∀ {Γ} → Sub (Γ * List Γ) (List Γ)
+-- Cons .Q    (q , qs) = q ∷ qs
+-- Cons .step (q , qs) = id
 
-Cons : ∀ {Γ} → Sub (Γ * List Γ) (List Γ)
-Cons .Q    (q , qs) = q ∷ qs
-Cons .step (q , qs) = id
-
-Foldr : ∀ {Γ Δ} → Sub Top Δ → Sub (Γ * Δ) Δ → Sub (List Γ) Δ
-Foldr n c .Q    []       = n .Q tt
-Foldr n c .Q    (q ∷ qs) = c .Q (q , Foldr n c .Q qs)
-Foldr n c .step []       = n .step tt
-Foldr n c .step (q ∷ qs) = Bracket id (Foldr n c .step qs) ∘ c .step (q , Foldr n c .Q qs)
-
---------------------------------------------------------------------------------
-
--- λ f. f 0 + f 1
-ex1 : Sub (Nat ⇒ Nat) Nat
-ex1 = App Add ∘ Pair (App id ∘ Pair id (Zero ∘ Final))
-                     (App id ∘ Pair id (Suc ∘ Zero ∘ Final))
-
-fromTotal : ∀ {Γ Δ} → Sub Γ Δ → Sub (send (Q Γ) λ q → Top + step Γ q) Δ
-fromTotal σ .Q = σ .Q
-fromTotal σ .step q .Q    q' = inj₂ (σ .step q .Q q')
-fromTotal σ .step q .step q' = σ .step q .step q'
-
-foo = ex1 .Q (fromTotal id)
+-- Foldr : ∀ {Γ Δ} → Sub Top Δ → Sub (Γ * Δ) Δ → Sub (List Γ) Δ
+-- Foldr n c .Q    []       = n .Q tt
+-- Foldr n c .Q    (q ∷ qs) = c .Q (q , Foldr n c .Q qs)
+-- Foldr n c .step []       = n .step tt
+-- Foldr n c .step (q ∷ qs) = Bracket id (Foldr n c .step qs) ∘ c .step (q , Foldr n c .Q qs)
