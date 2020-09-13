@@ -108,6 +108,60 @@ _,ₛ_ : ∀ {Γ Δ A}(σ : Sub Γ Δ) → Tm Γ (A [ σ ]T) → Sub Γ (Δ ▶ 
 (σ ,ₛ t) .next γ = +-rec (σ .next γ) (t .next γ)
 
 
+-- Tensor product (symmetric monoidal)
+--------------------------------------------------------------------------------
+
+infixr 4 _⊗_
+_⊗_ : Con → Con → Con
+(Γ ⊗ Δ) .M                            = Γ .M × Δ .M
+(Γ ⊗ Δ) .next (γ , δ) .M              = Γ .next γ .M ⊎ Δ .next δ .M
+(Γ ⊗ Δ) .next (γ , δ) .next (inj₁ γ') = Γ .next γ .next γ' ⊗ Δ
+(Γ ⊗ Δ) .next (γ , δ) .next (inj₂ δ') = Γ ⊗ Δ .next δ .next δ'
+
+⊗-map : ∀ {Γ Γ' Δ Δ'} → Sub Γ Γ' → Sub Δ Δ' → Sub (Γ ⊗ Δ) (Γ' ⊗ Δ')
+⊗-map f g .M    (γ , δ)                 = (f .M γ) , (g .M δ)
+⊗-map f g .next (γ , δ) .M    (inj₁ γ') = inj₁ (f .next γ .M γ')
+⊗-map f g .next (γ , δ) .M    (inj₂ δ') = inj₂ (g .next δ .M δ')
+⊗-map f g .next (γ , δ) .next (inj₁ γ') = ⊗-map (f .next γ .next γ') g
+⊗-map f g .next (γ , δ) .next (inj₂ δ') = ⊗-map f (g .next δ .next δ')
+
+-- + functor action on id, ∘
+
+⊗-idl→ : ∀ {Γ} → Sub (Γ ⊗ ∙) Γ
+⊗-idl→ .M    (γ , _)          = γ
+⊗-idl→ .next (γ , _) .M    γ' = inj₁ γ'
+⊗-idl→ .next (γ , _) .next γ' = ⊗-idl→
+
+⊗-idl← : ∀ {Γ} → Sub Γ (Γ ⊗ ∙)
+⊗-idl← .M    γ                 = γ , tt
+⊗-idl← .next γ .M    (inj₁ γ') = γ'
+⊗-idl← .next γ .next (inj₁ γ') = ⊗-idl←
+
+-- ⊗-idr→ : ∀ {Γ} → Sub (∙ ⊗ Γ) Γ
+-- ⊗-idr← : ∀ {Γ} → Sub Γ (∙ ⊗ Γ)
+
+⊗-ass→ : ∀ {Γ Δ Ξ} → Sub ((Γ ⊗ Δ) ⊗ Ξ) (Γ ⊗ Δ ⊗ Ξ)
+⊗-ass→ .M    ((γ , δ) , ξ)                        = γ , δ , ξ
+⊗-ass→ .next ((γ , δ) , ξ) .M    (inj₁ γ')        = inj₁ (inj₁ γ')
+⊗-ass→ .next ((γ , δ) , ξ) .M    (inj₂ (inj₁ δ')) = inj₁ (inj₂ δ')
+⊗-ass→ .next ((γ , δ) , ξ) .M    (inj₂ (inj₂ ξ')) = inj₂ ξ'
+⊗-ass→ .next ((γ , δ) , ξ) .next (inj₁ γ')        = ⊗-ass→
+⊗-ass→ .next ((γ , δ) , ξ) .next (inj₂ (inj₁ δ')) = ⊗-ass→
+⊗-ass→ .next ((γ , δ) , ξ) .next (inj₂ (inj₂ ξ')) = ⊗-ass→
+
+-- ⊗-ass← : ∀ {Γ Δ Ξ} → Sub (Γ ⊗ Δ ⊗ Ξ) ((Γ ⊗ Δ) ⊗ Ξ)
+-- etc...
+
+⊗-comm : ∀ {Γ Δ} → Sub (Γ ⊗ Δ) (Δ ⊗ Γ)
+⊗-comm .M    (γ , δ)                 = δ , γ
+⊗-comm .next (γ , δ) .M    (inj₁ γ') = inj₂ γ'
+⊗-comm .next (γ , δ) .M    (inj₂ δ') = inj₁ δ'
+⊗-comm .next (γ , δ) .next (inj₁ γ') = ⊗-comm
+⊗-comm .next (γ , δ) .next (inj₂ δ') = ⊗-comm
+
+-- + all naturalities, coherences
+
+
 -- Pi
 --------------------------------------------------------------------------------
 
@@ -199,6 +253,31 @@ Tr {Γ} {A} B {t} {u} e bt .next γ =
                    (Γ .next γ))
     (e .M γ) (bt .next γ)
 
+¬FunExt : (∀ {Γ A B}{t u : Tm Γ (Π {Γ} A B)} → Tm (Γ ▶ A) (Id (App t) (App u)) → Tm Γ (Id t u))
+        → ⊥
+¬FunExt fext with
+  ap (λ t → t .next _ .M _)
+  (fext {∙}{λ _ → send ⊤ λ _ → send Bool λ _ → ⊘}
+          {λ _ → send ⊤ λ _ → send ⊤ λ _ → ⊘}
+          {tm (λ _ → tm _ (λ _ → sub (λ _ → inj₂ true) λ _ → init))
+               λ _ → sub (λ ()) λ ()}
+          {tm (λ _ → tm _ (λ _ → sub (λ _ → inj₂ false) λ _ → init))
+               λ _ → sub (λ ()) λ ()}
+          (tm (λ _ → refl) λ _ → init)
+          .M _)
+... | ()
+
+-- But note that since (Reflect -> FunExt), we have (¬Funext -> ¬Reflect) anyway
+¬Reflect : (∀ {Γ A t u} → Tm Γ (Id {Γ}{A} t u) → t ≡ u) → ⊥
+¬Reflect rf with
+    ap (λ t → t .next _ . M _)
+    (rf {send ⊤ λ _ → send Bool λ _ → ⊘}
+        {λ _ → send ⊤ λ _ → ∙}
+        {tm _ λ _ → sub (λ _ → true) λ _ → init}
+        {tm _ λ _ → sub (λ _ → false) λ _ → init}
+        (tm (λ _ → refl) λ _ → init))
+... | ()
+
 
 -- Nat
 --------------------------------------------------------------------------------
@@ -223,6 +302,3 @@ NatElim B z s .M    (γ , zero)  = z .M γ
 NatElim B z s .M    (γ , suc n) = s .M ((γ , n) , NatElim B z s .M (γ , n))
 NatElim B z s .next (γ , zero)  = Inj₁ ∘ z .next γ
 NatElim B z s .next (γ , suc n) = +-rec id (NatElim B z s .next (γ , n)) ∘ s .next ((γ , n), _)
-
-
---------------------------------------------------------------------------------
