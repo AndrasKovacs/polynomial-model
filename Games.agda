@@ -13,10 +13,10 @@ represents the rules of a two-player game, although it's perhaps better to think
 of games as interaction protocols, since there is no concept of winning or
 losing here.
 
-This model is the extension of the set-based polynomial model of MLTT. A
+This model is an extension of the set-based polynomial model of MLTT. A
 polynomial can be viewed as a request-response interaction protocol. The idea is
-to extend polynomials coinductively to arbitrary number of interactions including
-infinite. It turns out that this is quite simple and moreover
+to extend polynomials coinductively to arbitrary number of interactions.
+It turns out that this is quite simple and
   - The restriction of the model to games with 2 moves is the polynomial model
   - The restriction of the model to games with a single move is the set model
 
@@ -38,16 +38,14 @@ reasonable example of a deterministic two-player alternating-move game.
 Games and game morphisms are defined using coinduction, and we assume that their equality
 is given by bisimulation.
 
-We skip proving most of equations and only formalize the non-equation components, because
+We skip proving most of the equations and only formalize the non-equation components, because
 it's fairly tedious to handle the dependent equalities plus the extensional equalities of
-codata. It would be a lot more convenient in a version of cubical Agda with UIP, since
-in that setting we have extensionalily for codata and computing transports. Currently such
-cubical mode is planned but not yet available.
+codata. It would be a lot more convenient in a future version of cubical Agda with UIP, since
+in that setting we have extensionalily for codata and computing transports.
 
-We use --type-in-type again for convenience. Everything here obviously works
-without --type-in-type. I've already formalized the polynomial model with
-explicit universe levels everywhere, and levels work the same way in the game
-model.
+We use --type-in-type for convenience. Everything here obviously works without
+--type-in-type. I've already formalized the polynomial model with explicit
+universe levels everywhere, and levels work the same way in the game model.
 
 -}
 
@@ -56,8 +54,7 @@ model.
 --------------------------------------------------------------------------------
 
 {-
-We define a category-with-families of games. We use usual component names which
-suggest type-theoretic syntax.
+We define a category-with-families of games. We use usual type-theoretic component names.
 
   Con : contexts, objects of the underlying category
   Sub : substitutions, morphisms of the underlying category
@@ -158,6 +155,10 @@ For Γ : Con, Γᴾ : Set is the set of *player strategies* for Γ. An element o
 is just a player, or a program implementing the Γ protocol. An element of Γᴼ is
 again a player/implementation, but where we consider Γ to start with an opponent
 move instead of a player move.
+
+I haven't yet checked if _ᴾ/_ᴼ extends to a model morphism of TT, and what kind of morphism.
+It's a weak morphism at best, I haven't looked at what kind of weak morphism.
+
 -}
 
 -- action on objects
@@ -288,8 +289,8 @@ we only have to take care of dependency in the first move, then switch to non-de
 record Tm (Γ : Con)(A : Ty Γ) : Set where
   constructor tm
   field
-    M    : ∀ γ → M (A γ)                               -- dependency
-    next : ∀ γ → Sub (A γ .next (M γ)) (Γ .next γ)     -- continuing with a normal morphism (non-dependent)
+    M    : ∀ γ → M (A γ)                           -- dependency
+    next : ∀ γ → Sub (A γ .next (M γ)) (Γ .next γ) -- continuing with a normal morphism (non-dependent)
 open Tm
 
 infix 6 _[_]t
@@ -329,9 +330,9 @@ _,ₛ_ : ∀ {Γ Δ A}(f : Sub Γ Δ) → Tm Γ (A [ f ]T) → Sub Γ (Δ ▶ A)
 --------------------------------------------------------------------------------
 
 {-
-There are a number of weird animals in the category of games, already with our
-restricted copycat game category. For example, we have two different symmetric
-monoidal products. I give here their definition and a sample of monoidal ops.
+There are a number of exotic animals in the category of games. For example, we
+have two different symmetric monoidal products. I give here their definition and
+a sample of monoidal ops.
 
 Both work by playing two games in a interleaved fashion.
 
