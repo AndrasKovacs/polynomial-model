@@ -4,17 +4,6 @@
 module Games.CoBiCCC where
 open import Lib
 
--- Category of games following Abramsky/McCusker, where the first map goes
--- backwards.
-
--- This intuitively means that the opponent makes the first move, and the player
--- reacts. Since the model is from the "perspective" of the player (i.e. a player
--- can play (Γ * Δ) iff they can play Γ and Δ), the very first level lives in Setᵒᵖ.
-
--- This blocks dependent types, because it's not possible to take the opposite
--- of a CwF (because of dependent morphisms), only the opposite of a
--- simply-typed democratic CwF.
-
 --------------------------------------------------------------------------------
 
 record Con : Set where
@@ -88,7 +77,44 @@ Copair : ∀ {Γ Δ Ξ} → Sub Γ Ξ → Sub Δ Ξ → Sub (Γ + Δ) Ξ
 Copair σ δ .M    ξ = (σ .M ξ) , (δ .M ξ)
 Copair σ δ .next ξ = Pair (σ .next ξ) (δ .next ξ)
 
-Fun : Con → Con → Con
-Fun Γ Δ .M                  = Δ .M × Bool
-Fun Γ Δ .next (δ , b) .M    = {!!}
-Fun Γ Δ .next (δ , b) .next = {!!}
+--------------------------------------------------------------------------------
+
+-- tensor product
+infixr 4 _⊗_
+_⊗_ : Con → Con → Con
+(Γ ⊗ Δ) .M                      = Γ .M ⊎ Δ .M
+(Γ ⊗ Δ) .next (inj₁ γ) .M       = Γ .next γ .M
+(Γ ⊗ Δ) .next (inj₁ γ) .next γ' = Γ .next γ .next γ' ⊗ Δ
+(Γ ⊗ Δ) .next (inj₂ δ) .M       = Δ .next δ .M
+(Γ ⊗ Δ) .next (inj₂ δ) .next δ' = Γ ⊗ Δ .next δ .next δ'
+
+-- tensor product of a ℕ-indexed family
+⊗ᵢ : (ℕ → Con) → Con
+⊗ᵢ Γ .M                     = ∃ λ i → Γ i .M
+⊗ᵢ Γ .next (i , γ) .M       = Γ i .next γ .M
+⊗ᵢ Γ .next (i , γ) .next γ' = ⊗ᵢ λ j → decCase (λ {refl → Γ i .next γ .next γ'}) (λ _ → Γ j) (ℕ≟ i j)
+
+-- Γ ! = Γ ⊗ Γ ⊗ Γ ...
+infix 7 _!
+_! : Con → Con
+Γ ! = ⊗ᵢ (λ _ → Γ)
+
+-- der : (Γ : ℕ → Con) → Sub (⊗ᵢ Γ) (Γ 0)
+-- der Γ .M γ = 0 , γ
+-- der Γ .next γ .M γ' = γ'
+-- der Γ .next γ .next γ' = coe {!!} (der (λ j →
+--           decCase (λ { refl → Γ 0 .next γ .next γ' }) (λ _ → Γ j) (ℕ≟ 0 j)))
+
+
+-- infixr 3 _⊸_
+-- _⊸_ : Con → Con → Con
+-- (Γ ⊸ Δ) .M                      = Δ .M
+-- (Γ ⊸ Δ) .next δ .M              = Γ .M ⊎ Δ .next δ .M
+-- (Γ ⊸ Δ) .next δ .next (inj₁ γ)  = {!!}
+-- (Γ ⊸ Δ) .next δ .next (inj₂ δ') = Γ ⊸ Δ .next δ .next δ'
+
+-- -- ????? should work, since it's in the literature
+-- Fun : Con → Con → Con
+-- Fun Γ Δ .M                  = Δ .M × Bool
+-- Fun Γ Δ .next (δ , b) .M    = {!!}
+-- Fun Γ Δ .next (δ , b) .next = {!!}

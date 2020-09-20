@@ -11,7 +11,7 @@ open import Level renaming (zero to lzero; suc to lsuc) public
 open import Data.Sum using (_⊎_; inj₁; inj₂) public
 import Axiom.Extensionality.Propositional as Axiom
 
-open import Data.Bool using (true; false; Bool) public
+open import Data.Bool using (true; false; Bool; if_then_else_) public
 open import Data.Nat using (zero; suc; ℕ) public
 
 record ⊤ {i} : Set i where
@@ -22,6 +22,26 @@ data ⊥ {i} : Set i where
 
 ⊥-elim : ∀ {i j}{A : Set i} → ⊥ {j} → A
 ⊥-elim ()
+
+infix 7 ¬_
+¬_ : ∀ {i} → Set i → Set i
+¬ A = A → ⊥ {lzero}
+
+Dec : ∀ {i} → Set i → Set i
+Dec A = Σ Bool λ b → if b then A else (A → ⊥ {lzero})
+
+ℕ≟ : (a b : ℕ) → Dec (a ≡ b)
+ℕ≟ zero    zero       = true , refl
+ℕ≟ zero    (suc b)    = false , λ ()
+ℕ≟ (suc a) zero       = false , λ ()
+ℕ≟ (suc a) (suc b) .₁ = ℕ≟ a b .₁
+ℕ≟ (suc a) (suc b) .₂ with ℕ≟ a b
+... | true  , refl = refl
+... | false , p    = λ {refl → p refl}
+
+decCase : ∀ {i j}{A : Set i}{B : Set j} → (A → B) → (¬ A → B) → Dec A → B
+decCase f g (false , p) = g p
+decCase f g (true  , p) = f p
 
 boolElim : ∀ {i}(P : Bool → Set i) → P true → P false → ∀ b → P b
 boolElim P pt pf false = pf
