@@ -248,10 +248,10 @@ Init .next ()
 
 {-
 In the current model, all type dependency happens in the first turn (2
-moves). We only use type theory to negotiate with the opponent in the first
+moves). We only use dependent types to negotiate with the opponent in the first
 turn, about which game to play.
 
-The same thing happens in the polynomial model: the request part model type
+The same thing happens in the polynomial model: the request part models type
 dependency, but responses only model simple type theory.
 
 An inutitive reason is the following: when we switch to the opponent, we flip
