@@ -464,7 +464,7 @@ and (Π A B tt .next) as constantly ⊥. So this is a game where player sends a 
 However, this is wrong in non-empty contexts, because (Π A B γ .next = λ _ → ⊥) implies that
 translation stops after the first move, and a Tm Γ (Π A B) can't have any action on later Γ
 moves. So we need to put at least *some* information in (Π A B γ .next), in order to represent
-dependency on Γ. It'll still hold that the Γ = ∙ case degenerates to what we've seen above.
+dependency on Γ. The Γ = ∙ case will still degenerate to what we've seen above.
 
 We define (Π A B γ .M) to be the set of a particular kind of *partial* terms from A to B.
 
@@ -472,7 +472,7 @@ First, from A : Ty Γ we define an A' : Ty Γ as follows:
 
   A' γ = send (A γ .M) λ α → ∙ + A γ .next α
 
-This is the A game except that the player has the choice to stop the game after the first turn.
+This is the A game except the player has the choice to stop the game after the first turn.
 
 Hence, Tm (A' γ) (λ α → B (γ, α)) is a translation from A to B except the translation has the
 choice to stop after doing one trip from A to B then back.
@@ -481,7 +481,7 @@ The choice to stop can be also viewed as the ability to throw an exception.
 
 Then, we define (Π A B γ .next t .M) as the *set of throwing traces* for (Π A B .γ .M).
 A trace consists of an α move in A γ .M and β' move in B (γ , α) .M, and this is a throwing
-trace if (Π A B .γ .M) elects to throw an exception on it.
+trace if (Π A B γ .M) elects to throw an exception on it.
 
 We define (Π A B γ .next t .next (α , β' , p)) as (B (γ , α) .next (t .M α) .next β'). This
 becomes an *exception handler*: for every throwing trace, we're allowed to continue the game
