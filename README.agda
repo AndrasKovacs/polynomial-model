@@ -10,6 +10,9 @@ eta rule for functions and a wealth of type formers. So this is a nice
 formalization of the unprovability of function extensionality in a reasonably
 feature-rich type theory.
 
+As a bonus, there's also a game-semantic generalization of the polynomial model.
+The formalization for this is not complete, I include operations but skip the equations. 
+
 This project was checked with Agda 2.6.1 with standard library 1.3.
 
 Metatheory:
@@ -35,3 +38,5 @@ open import Unit
 open import Empty
 open import Bool
 open import NoFunExt -- refutation of function extensionality
+
+open import Games    -- game semantics
