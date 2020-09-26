@@ -673,11 +673,6 @@ Pretty much any inductive type works in an analogous way.
 
 open import Data.List renaming (List to list)
 
-listElim : ∀ {A}(B : list A → Set) → (∀ {a as} → B as → B (a ∷ as)) → B [] → ∀ as → B as
-listElim B c n []       = n
-listElim B c n (a ∷ as) = c (listElim B c n as)
-
-
 List : ∀ {Γ} → Ty Γ → Ty Γ
 List {Γ} A γ .M             = list (A γ .M)                       -- player sends a list of  moves
 List {Γ} A γ .next []       = ⊘                                   -- opponent chooses to respond to one
