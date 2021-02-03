@@ -346,8 +346,8 @@ simultaneously, then (Γ ⊗ Δ) is the empty game!
 
 infixr 4 _⊗_
 _⊗_ : Con → Con → Con
-(Γ ⊗ Δ) .M                            = Γ .M × Δ .M                   -- player both games
-(Γ ⊗ Δ) .next (γ , δ) .M              = Γ .next γ .M ⊎ Δ .next δ .M   -- opponent pick which game to continue
+(Γ ⊗ Δ) .M                            = Γ .M × Δ .M                   -- player moves in both games
+(Γ ⊗ Δ) .next (γ , δ) .M              = Γ .next γ .M ⊎ Δ .next δ .M   -- opponent picks which game to continue
 (Γ ⊗ Δ) .next (γ , δ) .next (inj₁ γ') = Γ .next γ .next γ' ⊗ Δ
 (Γ ⊗ Δ) .next (γ , δ) .next (inj₂ δ') = Γ ⊗ Δ .next δ .next δ'
 
