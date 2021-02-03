@@ -133,7 +133,7 @@ However, the current game model is *not* a presheaf model, because at each level
 in morphisms the direction of component arrows is flipped. In short, although
 a game is a presheaf tree, a game morphism is not a natural transformation.
 
-Our morphisms are called "copcat" in game semantics literature. There is a more general
+Our morphisms are called "copycat" in game semantics literature. There is a more general
 notion of morphisms which is not necessarily copycat.
 
   - A copycat morphism is purely a translator: it's only allowed to map moves from one game
