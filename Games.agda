@@ -133,7 +133,7 @@ However, the current game model is *not* a presheaf model, because at each level
 in morphisms the direction of component arrows is flipped. In short, although
 a game is a presheaf tree, a game morphism is not a natural transformation.
 
-Our morphisms are called "copcat" in game semantics literature. There is a more general
+Our morphisms are called "copycat" in game semantics literature. There is a more general
 notion of morphisms which is not necessarily copycat.
 
   - A copycat morphism is purely a translator: it's only allowed to map moves from one game
@@ -346,8 +346,8 @@ simultaneously, then (Γ ⊗ Δ) is the empty game!
 
 infixr 4 _⊗_
 _⊗_ : Con → Con → Con
-(Γ ⊗ Δ) .M                            = Γ .M × Δ .M                   -- player both games
-(Γ ⊗ Δ) .next (γ , δ) .M              = Γ .next γ .M ⊎ Δ .next δ .M   -- opponent pick which game to continue
+(Γ ⊗ Δ) .M                            = Γ .M × Δ .M                   -- player moves in both games
+(Γ ⊗ Δ) .next (γ , δ) .M              = Γ .next γ .M ⊎ Δ .next δ .M   -- opponent picks which game to continue
 (Γ ⊗ Δ) .next (γ , δ) .next (inj₁ γ') = Γ .next γ .next γ' ⊗ Δ
 (Γ ⊗ Δ) .next (γ , δ) .next (inj₂ δ') = Γ ⊗ Δ .next δ .next δ'
 
