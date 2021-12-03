@@ -1,5 +1,5 @@
 
-{-# OPTIONS --type-in-type --postfix-projections #-}
+{-# OPTIONS --type-in-type --postfix-projections --guardedness #-}
 
 module Games where
 open import Lib
